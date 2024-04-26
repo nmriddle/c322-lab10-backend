@@ -1,7 +1,9 @@
 package edu.iu.habahram.ducksservice.repository;
+
 import edu.iu.habahram.ducksservice.model.Customer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,13 +14,13 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 public class CustomerFileRepository {
     private static final Logger LOG =
             LoggerFactory.getLogger(CustomerRepository.class);
+    private static final String NEW_LINE = System.lineSeparator();
+    private static final String DATABASE_NAME = "ducks/customers.txt";
     public CustomerFileRepository() {
         File file = new File(DATABASE_NAME);
         file.getParentFile().mkdirs();
@@ -29,8 +31,6 @@ public class CustomerFileRepository {
         }
     }
 
-    private static final String NEW_LINE = System.lineSeparator();
-    private static final String DATABASE_NAME = "ducks/customers.txt";
     private static void appendToFile(Path path, String content)
             throws IOException {
         Files.write(path,
@@ -38,9 +38,10 @@ public class CustomerFileRepository {
                 StandardOpenOption.CREATE,
                 StandardOpenOption.APPEND);
     }
+
     public void save(Customer customer) throws Exception {
         Customer c = findByUsername(customer.getUsername());
-        if(c != null) {
+        if (c != null) {
             throw new
                     Exception("This username already exists. " +
                     "Please choose another one.");
@@ -50,7 +51,7 @@ public class CustomerFileRepository {
         String passwordEncoded = bc.encode(customer.getPassword());
         String data = customer.getUsername() + ","
                 + passwordEncoded
-               + "," + customer.getEmail();
+                + "," + customer.getEmail();
         appendToFile(path, data + NEW_LINE);
     }
 
@@ -59,7 +60,7 @@ public class CustomerFileRepository {
         Path path = Paths.get(DATABASE_NAME);
         List<String> data = Files.readAllLines(path);
         for (String line : data) {
-            if(!line.trim().isEmpty()) {
+            if (!line.trim().isEmpty()) {
                 String[] tokens = line.split(",");
                 Customer c = new Customer(tokens[0], tokens[1], tokens[2]);
                 result.add(c);
@@ -70,7 +71,7 @@ public class CustomerFileRepository {
 
     public Customer findByUsername(String username) throws IOException {
         List<Customer> customers = findAll();
-        for(Customer customer : customers) {
+        for (Customer customer : customers) {
             if (customer.getUsername().trim().equalsIgnoreCase(username.trim())) {
                 return customer;
             }
